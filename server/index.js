@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const PORT = 8080;
 const DATA_FILE = path.join(__dirname, 'data', 'dashboards.json');
 
 app.use(cors());
@@ -47,6 +47,10 @@ app.post('/api/dashboards', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+    console.error('Server failed to start:', err);
 });

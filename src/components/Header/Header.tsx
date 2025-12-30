@@ -2,15 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useHomeAssistant } from '../../contexts/HomeAssistantContext';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDashboards } from '../../contexts/DashboardsContext';
-import { Cloud, Sun, Lightbulb, Menu, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Cloud, Sun, Lightbulb, Menu, MoreVertical, Edit2, Trash2, Settings, Check } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { DashboardModal } from '../Modals/DashboardModal';
 import './Header.css';
 
 export const Header: React.FC = () => {
     const { entities } = useHomeAssistant();
     const { toggleSidebar } = useSidebar();
-    const { activeDashboardId, isEditing, toggleEditing, deleteDashboard } = useDashboards();
+    const {
+        activeDashboardId,
+        dashboards,
+        isEditing,
+        toggleEditing,
+        deleteDashboard,
+        updateDashboard
+    } = useDashboards();
     const [time, setTime] = useState(new Date());
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+    const activeDashboard = dashboards.find(d => d.id === activeDashboardId);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -81,27 +92,54 @@ export const Header: React.FC = () => {
                     <DropdownMenu.Portal>
                         <DropdownMenu.Content className="dropdown-content" sideOffset={5} align="end">
                             <DropdownMenu.Item className="dropdown-item" onClick={toggleEditing}>
-                                <Edit2 size={16} />
-                                {isEditing ? 'Done Editing' : 'Edit Dashboard'}
+                                {isEditing ? <Check size={16} /> : <Edit2 size={16} />}
+                                {isEditing ? 'Done Editing' : 'Edit Widgets'}
                             </DropdownMenu.Item>
 
                             {activeDashboardId && (
-                                <DropdownMenu.Item
-                                    className="dropdown-item danger"
-                                    onClick={() => {
-                                        if (confirm('Are you sure you want to delete this dashboard?')) {
-                                            deleteDashboard(activeDashboardId);
-                                        }
-                                    }}
-                                >
-                                    <Trash2 size={16} />
-                                    Delete Dashboard
-                                </DropdownMenu.Item>
+                                <>
+                                    <DropdownMenu.Item
+                                        className="dropdown-item"
+                                        onClick={() => setIsSettingsModalOpen(true)}
+                                    >
+                                        <Settings size={16} />
+                                        Dashboard Settings
+                                    </DropdownMenu.Item>
+
+                                    <DropdownMenu.Item
+                                        className="dropdown-item danger"
+                                        onClick={() => {
+                                            if (confirm('Are you sure you want to delete this dashboard?')) {
+                                                deleteDashboard(activeDashboardId);
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 size={16} />
+                                        Delete Dashboard
+                                    </DropdownMenu.Item>
+                                </>
                             )}
                         </DropdownMenu.Content>
                     </DropdownMenu.Portal>
                 </DropdownMenu.Root>
             </div>
+
+            {activeDashboard && (
+                <DashboardModal
+                    isOpen={isSettingsModalOpen}
+                    onClose={() => setIsSettingsModalOpen(false)}
+                    initialName={activeDashboard.name}
+                    initialColumns={activeDashboard.columns}
+                    title="Dashboard Settings"
+                    onSave={(name, columns) => {
+                        updateDashboard({
+                            ...activeDashboard,
+                            name,
+                            columns
+                        });
+                    }}
+                />
+            )}
         </header>
     );
 };

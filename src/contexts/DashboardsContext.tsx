@@ -13,11 +13,21 @@ export interface Widget {
     }
 }
 
+export interface Section {
+    id: string;
+    title: string;
+    column?: number;
+    widgets: Widget[];
+}
+
 export interface Dashboard {
     id: string;
     name: string;
     icon: string;
-    widgets: Widget[];
+    sections: Section[];
+    columns?: number;
+    // Legacy support for migration
+    widgets?: Widget[];
 }
 
 interface DashboardsContextType {
@@ -26,11 +36,13 @@ interface DashboardsContextType {
     isEditing: boolean;
     toggleEditing: () => void;
     setActiveDashboardId: (id: string) => void;
-    addDashboard: (name: string) => Promise<void>;
+    addDashboard: (name: string, columns: number) => Promise<void>;
     deleteDashboard: (id: string) => Promise<void>;
     updateDashboard: (dashboard: Dashboard) => Promise<void>;
-    addWidget: (dashboardId: string, widget: Omit<Widget, 'id'>) => Promise<void>;
-    removeWidget: (dashboardId: string, widgetId: string) => Promise<void>;
+    addSection: (dashboardId: string, title: string, column?: number) => Promise<void>;
+    deleteSection: (dashboardId: string, sectionId: string) => Promise<void>;
+    addWidget: (dashboardId: string, sectionId: string, widget: Omit<Widget, 'id'>) => Promise<void>;
+    removeWidget: (dashboardId: string, sectionId: string, widgetId: string) => Promise<void>;
     refreshDashboards: () => Promise<void>;
 }
 
@@ -47,7 +59,35 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
         try {
             const response = await fetch('/api/dashboards');
             if (response.ok) {
-                const data = await response.json();
+                let data: Dashboard[] = await response.json();
+
+                // Migration logic for existing dashboards directly in fetch
+                // If dashboard has widgets but no sections, creating a default section
+                data = data.map(d => {
+                    let updated = { ...d };
+
+                    // Default columns if missing
+                    if (!updated.columns) {
+                        updated.columns = 3;
+                    }
+
+                    if (!d.sections && d.widgets && d.widgets.length > 0) {
+                        updated = {
+                            ...updated,
+                            sections: [{
+                                id: crypto.randomUUID(),
+                                title: 'Main Section',
+                                widgets: d.widgets
+                            }],
+                            widgets: undefined
+                        };
+                    } else if (!d.sections) {
+                        // Ensure sections array exists
+                        updated = { ...updated, sections: [] };
+                    }
+                    return updated;
+                });
+
                 setDashboards(data);
                 if (data.length > 0 && !activeDashboardId) {
                     setActiveDashboardId(data[0].id);
@@ -79,12 +119,19 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
         }
     };
 
-    const addDashboard = async (name: string) => {
+    const addDashboard = async (name: string, columns: number) => {
         const newDashboard: Dashboard = {
             id: crypto.randomUUID(),
             name,
             icon: 'layout-dashboard',
-            widgets: []
+            columns: columns || 3,
+            sections: [
+                {
+                    id: crypto.randomUUID(),
+                    title: 'Default Section',
+                    widgets: []
+                }
+            ]
         };
         const newDashboards = [...dashboards, newDashboard];
         await saveDashboards(newDashboards);
@@ -104,7 +151,38 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
         await saveDashboards(newDashboards);
     };
 
-    const addWidget = async (dashboardId: string, widget: Omit<Widget, 'id'>) => {
+    const addSection = async (dashboardId: string, title: string, column: number = 0) => {
+        const dashboard = dashboards.find(d => d.id === dashboardId);
+        if (!dashboard) return;
+
+        const newSection: Section = {
+            id: crypto.randomUUID(),
+            title,
+            column,
+            widgets: []
+        };
+
+        const updatedDashboard = {
+            ...dashboard,
+            sections: [...(dashboard.sections || []), newSection]
+        };
+
+        await updateDashboard(updatedDashboard);
+    };
+
+    const deleteSection = async (dashboardId: string, sectionId: string) => {
+        const dashboard = dashboards.find(d => d.id === dashboardId);
+        if (!dashboard) return;
+
+        const updatedDashboard = {
+            ...dashboard,
+            sections: dashboard.sections.filter(s => s.id !== sectionId)
+        };
+
+        await updateDashboard(updatedDashboard);
+    };
+
+    const addWidget = async (dashboardId: string, sectionId: string, widget: Omit<Widget, 'id'>) => {
         const dashboard = dashboards.find(d => d.id === dashboardId);
         if (!dashboard) return;
 
@@ -115,19 +193,35 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
 
         const updatedDashboard = {
             ...dashboard,
-            widgets: [...dashboard.widgets, newWidget]
+            sections: dashboard.sections.map(section => {
+                if (section.id === sectionId) {
+                    return {
+                        ...section,
+                        widgets: [...section.widgets, newWidget]
+                    };
+                }
+                return section;
+            })
         };
 
         await updateDashboard(updatedDashboard);
     };
 
-    const removeWidget = async (dashboardId: string, widgetId: string) => {
+    const removeWidget = async (dashboardId: string, sectionId: string, widgetId: string) => {
         const dashboard = dashboards.find(d => d.id === dashboardId);
         if (!dashboard) return;
 
         const updatedDashboard = {
             ...dashboard,
-            widgets: dashboard.widgets.filter(w => w.id !== widgetId)
+            sections: dashboard.sections.map(section => {
+                if (section.id === sectionId) {
+                    return {
+                        ...section,
+                        widgets: section.widgets.filter(w => w.id !== widgetId)
+                    };
+                }
+                return section;
+            })
         };
 
         await updateDashboard(updatedDashboard);
@@ -147,6 +241,8 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
             addDashboard,
             deleteDashboard,
             updateDashboard,
+            addSection,
+            deleteSection,
             addWidget,
             removeWidget,
             refreshDashboards

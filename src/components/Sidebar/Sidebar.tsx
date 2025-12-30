@@ -1,12 +1,14 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDashboards } from '../../contexts/DashboardsContext';
+import { DashboardModal } from '../Modals/DashboardModal';
 import { X, Plus, LayoutDashboard } from 'lucide-react';
 import './Sidebar.css';
 
 export const Sidebar: React.FC = () => {
     const { isOpen, closeSidebar } = useSidebar();
     const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useDashboards();
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
 
     // Close sidebar when clicking outside
@@ -59,16 +61,22 @@ export const Sidebar: React.FC = () => {
                     <button
                         className="dashboard-item"
                         style={{ width: '100%', justifyContent: 'center', marginTop: 'auto', cursor: 'pointer', color: '#cdd6f4' }}
-                        onClick={() => {
-                            const name = prompt('Enter dashboard name:');
-                            if (name) addDashboard(name);
-                        }}
+                        onClick={() => setIsCreateModalOpen(true)}
                     >
                         <Plus size={18} />
                         <span>Create New</span>
                     </button>
                 </div>
             </div>
+
+            <DashboardModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSave={(name, columns) => {
+                    addDashboard(name, columns);
+                }}
+                title="Create New Dashboard"
+            />
         </>
     );
 };
