@@ -4,6 +4,7 @@ import {
     createLongLivedTokenAuth,
     createConnection,
     subscribeEntities,
+    callService,
     type HassEntities
 } from 'home-assistant-js-websocket';
 
@@ -120,9 +121,7 @@ export const HomeAssistantProvider = ({ children }: { children: ReactNode }) => 
 
     const callHAService = (domain: string, service: string, serviceData?: object) => {
         if (!connection) return;
-        import('home-assistant-js-websocket').then(mod => {
-            mod.callService(connection!, domain, service, serviceData);
-        });
+        callService(connection!, domain, service, serviceData);
     };
 
     return (

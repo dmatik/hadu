@@ -43,6 +43,7 @@ interface DashboardsContextType {
     deleteSection: (dashboardId: string, sectionId: string) => Promise<void>;
     addWidget: (dashboardId: string, sectionId: string, widget: Omit<Widget, 'id'>) => Promise<void>;
     removeWidget: (dashboardId: string, sectionId: string, widgetId: string) => Promise<void>;
+    moveWidget: (dashboardId: string, sourceSectionId: string, destinationSectionId: string, widgetId: string, newIndex: number) => Promise<void>;
     refreshDashboards: () => Promise<void>;
 }
 
@@ -231,6 +232,74 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
         await fetchDashboards();
     };
 
+    const moveWidget = async (dashboardId: string, sourceSectionId: string, destinationSectionId: string, widgetId: string, newIndex: number) => {
+        const dashboard = dashboards.find(d => d.id === dashboardId);
+        if (!dashboard) return;
+
+        // Find the source section and widget
+        const sourceSection = dashboard.sections.find(s => s.id === sourceSectionId);
+        if (!sourceSection) return;
+
+        const widgetIndex = sourceSection.widgets.findIndex(w => w.id === widgetId);
+        if (widgetIndex === -1) return;
+
+        const widget = sourceSection.widgets[widgetIndex];
+
+        let updatedSections = [...dashboard.sections];
+
+        // Case 1: Moving within the same section
+        if (sourceSectionId === destinationSectionId) {
+            const sectionIndex = updatedSections.findIndex(s => s.id === sourceSectionId);
+            const newWidgets = [...sourceSection.widgets];
+
+            // Remove from old position
+            newWidgets.splice(widgetIndex, 1);
+            // Insert at new position
+            newWidgets.splice(newIndex, 0, widget);
+
+            updatedSections[sectionIndex] = {
+                ...sourceSection,
+                widgets: newWidgets
+            };
+        }
+        // Case 2: Moving to a different section
+        else {
+            const destSectionIndex = updatedSections.findIndex(s => s.id === destinationSectionId);
+            const sourceSectionIndex = updatedSections.findIndex(s => s.id === sourceSectionId);
+
+            if (destSectionIndex === -1) return;
+
+            const sourceWidgets = [...updatedSections[sourceSectionIndex].widgets];
+            const destWidgets = [...updatedSections[destSectionIndex].widgets];
+
+            // Remove from source
+            sourceWidgets.splice(widgetIndex, 1);
+
+            // Add to destination
+            destWidgets.splice(newIndex, 0, widget);
+
+            updatedSections[sourceSectionIndex] = {
+                ...updatedSections[sourceSectionIndex],
+                widgets: sourceWidgets
+            };
+
+            updatedSections[destSectionIndex] = {
+                ...updatedSections[destSectionIndex],
+                widgets: destWidgets
+            };
+        }
+
+        const updatedDashboard = {
+            ...dashboard,
+            sections: updatedSections
+        };
+
+        // Optimistic update
+        setDashboards(prev => prev.map(d => d.id === dashboardId ? updatedDashboard : d));
+
+        await saveDashboards(dashboards.map(d => d.id === dashboardId ? updatedDashboard : d));
+    };
+
     return (
         <DashboardsContext.Provider value={{
             dashboards,
@@ -245,6 +314,7 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
             deleteSection,
             addWidget,
             removeWidget,
+            moveWidget,
             refreshDashboards
         }}>
             {children}
