@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDashboards } from '../../contexts/DashboardsContext';
 import { DashboardModal } from '../Modals/DashboardModal';
@@ -7,9 +8,11 @@ import './Sidebar.css';
 
 export const Sidebar: React.FC = () => {
     const { isOpen, closeSidebar } = useSidebar();
-    const { dashboards, activeDashboardId, setActiveDashboardId, addDashboard } = useDashboards();
+    const { dashboards, activeDashboardId, addDashboard } = useDashboards();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -44,9 +47,9 @@ export const Sidebar: React.FC = () => {
                         {dashboards.map(dashboard => (
                             <li
                                 key={dashboard.id}
-                                className={`dashboard-item ${activeDashboardId === dashboard.id ? 'active' : ''}`}
+                                className={`dashboard-item ${activeDashboardId === dashboard.id || location.pathname === dashboard.path ? 'active' : ''}`}
                                 onClick={() => {
-                                    setActiveDashboardId(dashboard.id);
+                                    navigate(dashboard.path || '/');
                                     if (window.innerWidth < 768) closeSidebar();
                                 }}
                             >
@@ -72,9 +75,9 @@ export const Sidebar: React.FC = () => {
             <DashboardModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                onSave={(name, columns) => {
-                    addDashboard(name, columns);
-                }}
+                onSave={React.useCallback((name, columns, path) => {
+                    addDashboard(name, columns, path);
+                }, [addDashboard])}
                 title="Create New Dashboard"
             />
         </>

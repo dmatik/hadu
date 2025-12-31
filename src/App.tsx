@@ -1,10 +1,40 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
 import { HomeAssistantProvider, useHomeAssistant } from './contexts/HomeAssistantContext';
 import { DashboardLayout } from './components/Dashboard/DashboardLayout';
 import { SidebarProvider } from './contexts/SidebarContext';
-import { DashboardsProvider } from './contexts/DashboardsContext';
+import { DashboardsProvider, useDashboards } from './contexts/DashboardsContext';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import './App.css';
+
+const DashboardSync: React.FC = () => {
+  const { dashboards, setActiveDashboardId } = useDashboards();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (dashboards.length === 0) return;
+
+    const path = location.pathname;
+
+    if (path === '/' && dashboards.length > 0) {
+      // Redirect root to first dashboard
+      const firstDashboard = dashboards[0];
+      navigate(firstDashboard.path || '/');
+      return;
+    }
+
+    const matchingDashboard = dashboards.find(d => d.path === path);
+    if (matchingDashboard) {
+      setActiveDashboardId(matchingDashboard.id);
+    } else {
+      // Path does not match any dashboard. Clear active selection to show 404 state.
+      setActiveDashboardId(''); // or null if type allows, usually context handles empty string as "no selection"
+    }
+  }, [location.pathname, dashboards, setActiveDashboardId, navigate]);
+
+  return null;
+};
 
 const AppContent: React.FC = () => {
   const { config } = useHomeAssistant();
@@ -36,14 +66,17 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <HomeAssistantProvider>
-      <DashboardsProvider>
-        <SidebarProvider>
-          <Sidebar />
-          <AppContent />
-        </SidebarProvider>
-      </DashboardsProvider>
-    </HomeAssistantProvider>
+    <BrowserRouter>
+      <HomeAssistantProvider>
+        <DashboardsProvider>
+          <SidebarProvider>
+            <DashboardSync />
+            <Sidebar />
+            <AppContent />
+          </SidebarProvider>
+        </DashboardsProvider>
+      </HomeAssistantProvider>
+    </BrowserRouter>
   );
 }
 

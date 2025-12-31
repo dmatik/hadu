@@ -24,6 +24,7 @@ export interface Dashboard {
     id: string;
     name: string;
     icon: string;
+    path: string;
     sections: Section[];
     columns?: number;
     // Legacy support for migration
@@ -36,7 +37,7 @@ interface DashboardsContextType {
     isEditing: boolean;
     toggleEditing: () => void;
     setActiveDashboardId: (id: string) => void;
-    addDashboard: (name: string, columns: number) => Promise<void>;
+    addDashboard: (name: string, columns: number, path?: string) => Promise<void>;
     deleteDashboard: (id: string) => Promise<void>;
     updateDashboard: (dashboard: Dashboard) => Promise<void>;
     addSection: (dashboardId: string, title: string, column?: number) => Promise<void>;
@@ -70,6 +71,11 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
                     // Default columns if missing
                     if (!updated.columns) {
                         updated.columns = 3;
+                    }
+
+                    // Default path if missing
+                    if (!updated.path) {
+                        updated.path = '/' + d.name.toLowerCase().replace(/\s+/g, '-');
                     }
 
                     if (!d.sections && d.widgets && d.widgets.length > 0) {
@@ -120,11 +126,14 @@ export const DashboardsProvider: React.FC<{ children: ReactNode }> = ({ children
         }
     };
 
-    const addDashboard = async (name: string, columns: number) => {
+    const addDashboard = async (name: string, columns: number, path?: string) => {
+        const generatedPath = path || '/' + name.toLowerCase().replace(/\s+/g, '-');
+
         const newDashboard: Dashboard = {
             id: crypto.randomUUID(),
             name,
             icon: 'layout-dashboard',
+            path: generatedPath.startsWith('/') ? generatedPath : '/' + generatedPath,
             columns: columns || 3,
             sections: [
                 {

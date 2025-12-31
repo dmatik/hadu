@@ -76,8 +76,8 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    /* Match entity card exact height (100px content + 1.25rem*2 padding = ~140px if content-box, but safely 140px works well) */
-    height: 140px;
+
+    height: 80px;
     min-height: unset;
     border: 2px dashed rgba(255, 255, 255, 0.2) !important;
     background: rgba(255, 255, 255, 0.02) !important;

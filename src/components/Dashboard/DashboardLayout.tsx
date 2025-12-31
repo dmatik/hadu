@@ -50,11 +50,28 @@ export const DashboardLayout: React.FC = () => {
         })
     );
 
+    // Import DashboardModal here if we want to allow creating new one directly, 
+    // BUT Sidebar already has it. Let's just tell user to use sidebar.
+
     if (!entities) {
         return (
             <div className="flex justify-center items-center h-screen text-white">
                 Loading entities...
             </div>
+        );
+    }
+
+    if (!activeDashboard) {
+        return (
+            <>
+                <Header />
+                <div className="dashboard-container">
+                    <div className="empty-state">
+                        <p className="title">Dashboard not found</p>
+                        <p className="mb-4">Please select an existing dashboard from the sidebar or create a new one.</p>
+                    </div>
+                </div>
+            </>
         );
     }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useHomeAssistant } from '../../contexts/HomeAssistantContext';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useDashboards } from '../../contexts/DashboardsContext';
@@ -20,6 +21,7 @@ export const Header: React.FC = () => {
     } = useDashboards();
     const [time, setTime] = useState(new Date());
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     const activeDashboard = dashboards.find(d => d.id === activeDashboardId);
 
@@ -52,6 +54,23 @@ export const Header: React.FC = () => {
     const weatherEntity = Object.values(entities || {}).find(e => e.entity_id.startsWith('weather.'));
     const weatherState = weatherEntity?.state || 'Unknown';
     const temperature = weatherEntity?.attributes?.temperature;
+
+    const handleCloseSettings = React.useCallback(() => {
+        setIsSettingsModalOpen(false);
+    }, []);
+
+    const handleSaveSettings = React.useCallback((name: string, columns: number, path: string) => {
+        if (!activeDashboard) return;
+        updateDashboard({
+            ...activeDashboard,
+            name,
+            columns,
+            path
+        });
+        if (path !== activeDashboard.path) {
+            navigate(path);
+        }
+    }, [activeDashboard, updateDashboard, navigate]);
 
     return (
         <header className="header-container">
@@ -127,17 +146,12 @@ export const Header: React.FC = () => {
             {activeDashboard && (
                 <DashboardModal
                     isOpen={isSettingsModalOpen}
-                    onClose={() => setIsSettingsModalOpen(false)}
+                    onClose={handleCloseSettings}
                     initialName={activeDashboard.name}
                     initialColumns={activeDashboard.columns}
+                    initialPath={activeDashboard.path}
                     title="Dashboard Settings"
-                    onSave={(name, columns) => {
-                        updateDashboard({
-                            ...activeDashboard,
-                            name,
-                            columns
-                        });
-                    }}
+                    onSave={handleSaveSettings}
                 />
             )}
         </header>

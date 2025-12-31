@@ -1,46 +1,85 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X } from 'lucide-react';
 import './DashboardModal.css';
 
 interface Props {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (name: string, columns: number) => void;
+    onSave: (name: string, columns: number, path: string) => void;
     initialName?: string;
     initialColumns?: number;
+    initialPath?: string;
     title?: string;
 }
 
-export const DashboardModal: React.FC<Props> = ({
+export const DashboardModal = React.memo<Props>(({
     isOpen,
     onClose,
     onSave,
     initialName = '',
     initialColumns = 3,
+    initialPath = '',
     title = 'Create Dashboard'
 }) => {
+    // Initialize state lazily
     const [name, setName] = useState(initialName);
     const [columns, setColumns] = useState(initialColumns);
+    const [path, setPath] = useState(() => initialPath.startsWith('/') ? initialPath.slice(1) : initialPath);
+    const [isPathManuallyEdited, setIsPathManuallyEdited] = useState(!!initialPath);
+
+    // Track previous open state to detect opening transition
+    const prevIsOpen = React.useRef(isOpen);
 
     useEffect(() => {
-        if (isOpen) {
+        // Only reset form when opening (transition from closed to open)
+        if (isOpen && !prevIsOpen.current) {
             setName(initialName);
             setColumns(initialColumns);
+            // Remove leading slash for display
+            setPath(initialPath.startsWith('/') ? initialPath.slice(1) : initialPath);
+            setIsPathManuallyEdited(!!initialPath);
         }
-    }, [isOpen, initialName, initialColumns]);
+        prevIsOpen.current = isOpen;
+    }, [isOpen, initialName, initialColumns, initialPath]);
 
-    if (!isOpen) return null;
+    const slugify = (text: string) => {
+        return text
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')     // Replace spaces with -
+            .replace(/[^\w-]+/g, '')  // Remove all non-word chars
+            .replace(/--+/g, '-');    // Replace multiple - with single -
+    };
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newName = e.target.value;
+        setName(newName);
+        if (!isPathManuallyEdited && !initialPath) {
+            setPath(slugify(newName));
+        }
+    };
+
+    const handlePathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPath(e.target.value);
+        setIsPathManuallyEdited(true);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (name.trim()) {
-            onSave(name, columns);
+            // Ensure path starts with /
+            const finalPath = path.startsWith('/') ? path : '/' + path;
+            onSave(name, columns, finalPath);
             onClose();
         }
     };
 
-    return (
-        <div className={`modal-overlay ${isOpen ? 'open' : ''}`}>
+    // Removed the early return null to allow CSS transitions and maintain DOM presence (hidden)
+
+    return ReactDOM.createPortal(
+        <div className={`modal-overlay ${isOpen ? 'open' : ''}`} aria-hidden={!isOpen}>
             <div className="modal-content">
                 <div className="modal-header">
                     <h2 className="modal-title">{title}</h2>
@@ -57,11 +96,26 @@ export const DashboardModal: React.FC<Props> = ({
                                 type="text"
                                 className="form-input"
                                 value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                onChange={handleNameChange}
                                 placeholder="e.g. Living Room"
-                                autoFocus
+                                autoFocus={isOpen}
                                 required
                             />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">URL Path</label>
+                            <div className="input-prefix-wrapper">
+                                <span className="input-prefix">/</span>
+                                <input
+                                    type="text"
+                                    className="form-input with-prefix"
+                                    value={path}
+                                    onChange={handlePathChange}
+                                    placeholder="living-room"
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
@@ -91,6 +145,7 @@ export const DashboardModal: React.FC<Props> = ({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
-};
+});

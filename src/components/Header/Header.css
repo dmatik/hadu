@@ -2,7 +2,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0 2rem;
     margin-bottom: 0;
     width: 100%;
     box-sizing: border-box;
@@ -12,6 +12,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
+    height: 80px;
 }
 
 .header-left {
@@ -41,22 +42,24 @@
 .title-group {
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
 
 .greeting {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     background: linear-gradient(to right, #fff, #a5b4fc);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0;
+    line-height: 1.2;
 }
 
 .date-display {
-    font-size: 1rem;
+    font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.6);
-    margin-top: 0.25rem;
+    margin-top: 0;
 }
 
 .header-right {
