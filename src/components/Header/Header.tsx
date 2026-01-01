@@ -30,12 +30,7 @@ export const Header: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const getGreeting = () => {
-        const hours = time.getHours();
-        if (hours < 12) return 'Good Morning';
-        if (hours < 18) return 'Good Afternoon';
-        return 'Good Evening';
-    };
+
 
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('en-US', {
@@ -79,9 +74,15 @@ export const Header: React.FC = () => {
                     <Menu size={24} />
                 </button>
                 <div className="title-group">
-                    <h1 className="greeting">{getGreeting()}</h1>
+                    <h1 className="greeting">
+                        {time.toLocaleTimeString('en-US', {
+                            hour12: false,
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </h1>
                     <div className="date-display">
-                        {formatDate(time)} • {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatDate(time)}
                     </div>
                 </div>
             </div>
