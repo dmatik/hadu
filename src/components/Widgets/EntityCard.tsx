@@ -146,10 +146,15 @@ export const EntityCard: React.FC<Props> = ({ entity, options }) => {
         );
     }
 
+    const accentColor = domain === 'light'
+        ? (entity.attributes.rgb_color ? `rgb(${entity.attributes.rgb_color.join(',')})` : '#FFC107')
+        : undefined;
+
     return (
         <div
             className={`entity-card glass ${isActive ? 'active' : ''} ${isToggleable ? 'clickable' : ''}`}
             onClick={isToggleable ? handleToggle : undefined}
+            style={accentColor ? { '--entity-accent-color': accentColor } as React.CSSProperties : undefined}
         >
             <div className="icon-wrapper">
                 {renderIconOrContent()}
