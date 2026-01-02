@@ -111,10 +111,10 @@ export const EntityCard: React.FC<Props> = ({ entity, options }) => {
 
                 <div className="climate-controls">
                     <button
-                        className={`climate-btn mode-off ${currentMode === 'off' ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleClimateMode('off'); }}
+                        className={`climate-btn mode-heat ${currentMode === 'heat' ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); handleClimateMode('heat'); }}
                     >
-                        <Power size={20} />
+                        <Flame size={20} />
                     </button>
                     <button
                         className={`climate-btn mode-cool ${currentMode === 'cool' ? 'active' : ''}`}
@@ -123,10 +123,10 @@ export const EntityCard: React.FC<Props> = ({ entity, options }) => {
                         <Snowflake size={20} />
                     </button>
                     <button
-                        className={`climate-btn mode-heat ${currentMode === 'heat' ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleClimateMode('heat'); }}
+                        className={`climate-btn mode-off ${currentMode === 'off' ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); handleClimateMode('off'); }}
                     >
-                        <Flame size={20} />
+                        <Power size={20} />
                     </button>
                 </div>
             </div>
