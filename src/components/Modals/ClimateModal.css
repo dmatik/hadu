@@ -1,0 +1,348 @@
+.climate-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.climate-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.climate-modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    padding: 0;
+    position: relative;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.climate-modal-overlay.open .climate-modal-content {
+    transform: translateY(0);
+}
+
+.climate-modal-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Dashboard separator style */
+    margin-bottom: 2rem;
+    box-sizing: border-box;
+}
+
+.climate-modal-title-group {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.climate-modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    opacity: 1;
+}
+
+.climate-modal-area {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    font-weight: 400;
+}
+
+.climate-modal-close {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.climate-modal-close:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.current-temp-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+}
+
+.current-temp-value {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+/* Circular Slider */
+.circular-slider-container {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    margin-bottom: 2rem;
+    touch-action: none;
+}
+
+.circular-slider-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.slider-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 20;
+    stroke-linecap: round;
+}
+
+.slider-progress {
+    fill: none;
+    stroke: var(--primary-color, #4facfe);
+    stroke-width: 20;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.1s;
+}
+
+.slider-thumb {
+    fill: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    cursor: grab;
+    filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+.slider-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.target-temp-val {
+    font-size: 3rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.target-mode-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+}
+
+/* Buttons below slider */
+.temp-adjust-buttons {
+    display: flex;
+    gap: 2rem;
+    margin-top: -40px;
+    margin-bottom: 2rem;
+    z-index: 10;
+}
+
+.adjust-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.adjust-btn svg {
+    /* User request in step 102 */
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2.5px;
+}
+
+.adjust-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.adjust-btn:active {
+    transform: scale(0.95);
+}
+
+/* Bottom Controls */
+.modal-controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+}
+
+.mode-selector-container {
+    position: relative;
+    width: 100%;
+}
+
+.control-tile {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+}
+
+.control-tile:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.control-tile.active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.control-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.control-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.control-value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.control-icon {
+    opacity: 0.8;
+}
+
+/* Dropdowns */
+/* .mode-selector-container:hover .mode-dropdown removed - controlled by state now */
+
+.mode-dropdown.open {
+    display: flex;
+}
+
+.mode-dropdown {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    background: #2a2a2a;
+    border-radius: 12px;
+    padding: 4px;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    clip-path: inset(0 round 12px);
+    /* Hide scrollbar for Firefox */
+    scrollbar-width: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.mode-dropdown::-webkit-scrollbar {
+    display: none;
+}
+
+.mode-option {
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+    text-transform: capitalize;
+    color: rgba(255, 255, 255, 0.7);
+    background: transparent;
+    border: none;
+    width: 100%;
+    display: block;
+}
+
+/* Subtle hover effect for non-active items */
+.mode-option:not(.active):hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: white !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.mode-option.active {
+    background: var(--primary-color, #4facfe);
+    color: white;
+}
+
+.mode-option.active:hover {
+    background: var(--primary-color, #4facfe) !important;
+    color: white !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* New Body Wrapper for padding logic */
+.climate-modal-body {
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

@@ -11,6 +11,7 @@ import {
     Flame
 } from 'lucide-react';
 import './Widgets.css';
+import { ClimateModal } from '../Modals/ClimateModal';
 
 interface Props {
     entity: HassEntity;
@@ -82,54 +83,66 @@ export const EntityCard: React.FC<Props> = ({ entity, options }) => {
     };
 
     if (domain === 'climate') {
+        const [showModal, setShowModal] = React.useState(false);
         const currentMode = entity.state; // 'off', 'cool', 'heat', 'auto', etc.
 
         return (
-            <div className={`entity-card glass climate ${isActive ? 'active' : ''} mode-${currentMode}`}>
-                <div className="climate-main-row">
-                    <div className="icon-wrapper">
-                        {renderIconOrContent()}
+            <>
+                <div
+                    className={`entity-card glass climate ${isActive ? 'active' : ''} mode-${currentMode} clickable`}
+                    onClick={() => setShowModal(true)}
+                >
+                    <div className="climate-main-row">
+                        <div className="icon-wrapper">
+                            {renderIconOrContent()}
+                        </div>
+
+                        <div className="entity-info">
+                            <div className="entity-name" title={entity.attributes.friendly_name || entity.entity_id}>
+                                {entity.attributes.friendly_name || entity.entity_id}
+                            </div>
+                            <div className="entity-state">
+                                {entity.state}
+                                {(() => {
+                                    const attr = entity.attributes;
+                                    const targetTemp = attr.temperature || attr.target_temp_low || attr.target_temp_high;
+                                    if (targetTemp !== undefined && targetTemp !== null) {
+                                        return ` • ${targetTemp}°`;
+                                    }
+                                    return '';
+                                })()}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="entity-info">
-                        <div className="entity-name" title={entity.attributes.friendly_name || entity.entity_id}>
-                            {entity.attributes.friendly_name || entity.entity_id}
-                        </div>
-                        <div className="entity-state">
-                            {entity.state}
-                            {(() => {
-                                const attr = entity.attributes;
-                                const targetTemp = attr.temperature || attr.target_temp_low || attr.target_temp_high;
-                                if (targetTemp !== undefined && targetTemp !== null) {
-                                    return ` • ${targetTemp}°`;
-                                }
-                                return '';
-                            })()}
-                        </div>
+                    <div className="climate-controls">
+                        <button
+                            className={`climate-btn mode-heat ${currentMode === 'heat' ? 'active' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); handleClimateMode('heat'); }}
+                        >
+                            <Flame size={20} />
+                        </button>
+                        <button
+                            className={`climate-btn mode-cool ${currentMode === 'cool' ? 'active' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); handleClimateMode('cool'); }}
+                        >
+                            <Snowflake size={20} />
+                        </button>
+                        <button
+                            className={`climate-btn mode-off ${currentMode === 'off' ? 'active' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); handleClimateMode('off'); }}
+                        >
+                            <Power size={20} />
+                        </button>
                     </div>
                 </div>
 
-                <div className="climate-controls">
-                    <button
-                        className={`climate-btn mode-heat ${currentMode === 'heat' ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleClimateMode('heat'); }}
-                    >
-                        <Flame size={20} />
-                    </button>
-                    <button
-                        className={`climate-btn mode-cool ${currentMode === 'cool' ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleClimateMode('cool'); }}
-                    >
-                        <Snowflake size={20} />
-                    </button>
-                    <button
-                        className={`climate-btn mode-off ${currentMode === 'off' ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleClimateMode('off'); }}
-                    >
-                        <Power size={20} />
-                    </button>
-                </div>
-            </div>
+                <ClimateModal
+                    entity={entity}
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                />
+            </>
         );
     }
 
