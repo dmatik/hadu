@@ -80,3 +80,130 @@
     color: rgba(255, 255, 255, 0.6);
     text-transform: capitalize;
 }
+
+/* Temp Display */
+.temp-display {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.temp-value {
+    font-size: 1.0rem;
+    font-weight: 400;
+    color: white;
+}
+
+.temp-unit {
+    font-size: 1.0rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    margin-left: 0;
+    margin-top: -5px;
+}
+
+/* Climate Card */
+.entity-card.climate {
+    height: auto;
+    min-height: 80px;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+}
+
+.climate-main-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    height: 80px;
+    box-sizing: border-box;
+}
+
+.climate-controls {
+    display: flex;
+    flex-direction: row;
+    padding: 0rem 1rem 1rem 1rem;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+
+.climate-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+/* Hover effects matching the active colors */
+.climate-btn.mode-off:hover {
+    background: rgba(108, 117, 125, 0.3);
+    border-color: rgba(108, 117, 125, 0.5);
+    box-shadow: 0 0 15px rgba(108, 117, 125, 0.3);
+    color: white;
+}
+
+.climate-btn.mode-cool:hover {
+    background: rgba(79, 172, 254, 0.3);
+    border-color: rgba(79, 172, 254, 0.5);
+    box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+    color: white;
+}
+
+.climate-btn.mode-heat:hover {
+    background: rgba(249, 115, 22, 0.3);
+    border-color: rgba(249, 115, 22, 0.5);
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+    color: white;
+}
+
+.climate-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.climate-btn.active.mode-off {
+    background: #6c757d;
+    border-color: #6c757d;
+}
+
+.climate-btn.active.mode-heat {
+    background: #f97316;
+    border-color: #f97316;
+}
+
+.climate-btn.active.mode-cool {
+    background: #4facfe;
+    border-color: #4facfe;
+}
+
+/* Update main icon accent based on mode */
+.entity-card.climate.active.mode-heat .icon-wrapper {
+    background: #f97316;
+}
+
+.entity-card.climate.active.mode-heat::before {
+    background: #f97316;
+    box-shadow: 0 0 10px #f97316;
+}
+
+.entity-card.climate.active.mode-cool .icon-wrapper {
+    background: #4facfe;
+}
+
+.entity-card.climate.active.mode-cool::before {
+    background: #4facfe;
+    box-shadow: 0 0 10px #4facfe;
+}

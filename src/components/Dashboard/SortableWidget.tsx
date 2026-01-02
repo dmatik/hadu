@@ -7,11 +7,12 @@ import { X } from 'lucide-react';
 interface SortableWidgetProps {
     id: string;
     entity: any;
+    options?: any;
     isEditing: boolean;
     onRemove: () => void;
 }
 
-export const SortableWidget: React.FC<SortableWidgetProps> = ({ id, entity, isEditing, onRemove }) => {
+export const SortableWidget: React.FC<SortableWidgetProps> = ({ id, entity, options, isEditing, onRemove }) => {
     const {
         attributes,
         listeners,
@@ -68,7 +69,7 @@ export const SortableWidget: React.FC<SortableWidgetProps> = ({ id, entity, isEd
                 </>
             )}
 
-            <EntityCard entity={entity} />
+            <EntityCard entity={entity} options={options} />
         </div>
     );
 };

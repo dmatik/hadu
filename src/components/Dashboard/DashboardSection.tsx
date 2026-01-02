@@ -14,6 +14,7 @@ import './Dashboard.css';
 interface Widget {
     id: string;
     entityId: string;
+    options?: any;
     // ... other props if needed, but we mostly just need id and entityId for display
 }
 
@@ -100,6 +101,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
                                 key={widget.id}
                                 id={widget.id}
                                 entity={entity}
+                                options={widget.options}
                                 isEditing={isEditing}
                                 onRemove={() => onRemoveWidget(widget.id)}
                             />

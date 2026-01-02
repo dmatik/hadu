@@ -14,7 +14,7 @@ import './AddWidgetModal.css';
 interface Props {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (entityId: string, type: string) => void;
+    onAdd: (entityId: string, type: string, options?: any) => void;
 }
 
 const DOMAINS = [
@@ -29,6 +29,7 @@ const DOMAINS = [
 export const AddWidgetModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
     const { entities } = useHomeAssistant();
     const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
+    const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     if (!isOpen) return null;
@@ -43,9 +44,52 @@ export const AddWidgetModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
         })
         : [];
 
+    const filteredSensors = selectedEntityId && entities
+        ? Object.values(entities).filter(e => {
+            const isSensor = e.entity_id.startsWith('sensor.') || e.entity_id.startsWith('input_number.');
+            const matchesSearch = e.entity_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (e.attributes.friendly_name?.toLowerCase().includes(searchQuery.toLowerCase()));
+            return isSensor && matchesSearch;
+        })
+        : [];
+
     const handleBack = () => {
-        setSelectedDomain(null);
-        setSearchQuery('');
+        if (selectedEntityId) {
+            setSelectedEntityId(null);
+            setSearchQuery(''); // Clear search when going back
+        } else {
+            setSelectedDomain(null);
+            setSearchQuery('');
+        }
+    };
+
+    const handleEntitySelect = (entityId: string) => {
+        if (selectedDomain === 'climate') {
+            setSelectedEntityId(entityId);
+            setSearchQuery(''); // Reset search for sensor selection
+        } else {
+            onAdd(entityId, 'entity-card');
+            closeModal();
+        }
+    };
+
+    const handleConfigSelect = (sensorId?: string) => {
+        if (selectedEntityId) {
+            onAdd(selectedEntityId, 'entity-card', {
+                temperatureSensor: sensorId
+            });
+            closeModal();
+        }
+    };
+
+    const closeModal = () => {
+        onClose();
+        // Reset state after transition
+        setTimeout(() => {
+            setSelectedDomain(null);
+            setSelectedEntityId(null);
+            setSearchQuery('');
+        }, 300);
     };
 
     return (
@@ -53,9 +97,10 @@ export const AddWidgetModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
             <div className="modal-content">
                 <div className="modal-header">
                     <h2 className="modal-title">
-                        {selectedDomain ? `Select ${selectedDomain} Entity` : 'Select Domain'}
+                        {selectedEntityId ? 'Select Temperature Sensor' :
+                            selectedDomain ? `Select ${selectedDomain} Entity` : 'Select Domain'}
                     </h2>
-                    <button className="modal-close" onClick={onClose}>
+                    <button className="modal-close" onClick={closeModal}>
                         <X size={24} />
                     </button>
                 </div>
@@ -77,7 +122,7 @@ export const AddWidgetModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
                                 );
                             })}
                         </div>
-                    ) : (
+                    ) : !selectedEntityId ? (
                         <div>
                             <div className="entity-list-header">
                                 <button className="back-btn" onClick={handleBack}>
@@ -106,11 +151,7 @@ export const AddWidgetModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
                                         <div
                                             key={entity.entity_id}
                                             className="entity-item"
-                                            onClick={() => {
-                                                onAdd(entity.entity_id, 'entity-card');
-                                                onClose();
-                                                setSelectedDomain(null); // Reset for next time
-                                            }}
+                                            onClick={() => handleEntitySelect(entity.entity_id)}
                                         >
                                             <div className="entity-item-info">
                                                 <span className="entity-item-name">
@@ -122,6 +163,69 @@ export const AddWidgetModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
                                             </div>
                                         </div>
                                     ))
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <div className="entity-list-header">
+                                <button className="back-btn" onClick={handleBack}>
+                                    <ArrowLeft size={16} /> Back
+                                </button>
+                            </div>
+
+                            <div className="relative mb-4">
+                                <input
+                                    type="text"
+                                    placeholder="Search sensors..."
+                                    className="search-input"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="entity-list">
+                                {/* Default Option */}
+                                <div
+                                    className="entity-item"
+                                    onClick={() => handleConfigSelect(undefined)}
+                                    style={{ borderLeft: '3px solid var(--primary-color)' }}
+                                >
+                                    <div className="entity-item-info">
+                                        <span className="entity-item-name">
+                                            Default: Use Climate Attribute
+                                        </span>
+                                        <span className="entity-item-id">
+                                            {selectedEntityId} (current_temperature)
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {filteredSensors.map(sensor => (
+                                    <div
+                                        key={sensor.entity_id}
+                                        className="entity-item"
+                                        onClick={() => handleConfigSelect(sensor.entity_id)}
+                                    >
+                                        <div className="entity-item-info">
+                                            <span className="entity-item-name">
+                                                {sensor.attributes.friendly_name || sensor.entity_id}
+                                            </span>
+                                            <span className="entity-item-id">
+                                                {sensor.entity_id}
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-gray-400">
+                                            {sensor.state} {sensor.attributes.unit_of_measurement}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {filteredSensors.length === 0 && searchQuery && (
+                                    <div className="text-gray-400 text-center py-4">
+                                        No sensors found matching "{searchQuery}"
+                                    </div>
                                 )}
                             </div>
                         </div>

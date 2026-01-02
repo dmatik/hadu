@@ -234,11 +234,12 @@ export const DashboardLayout: React.FC = () => {
                     setIsAddModalOpen(false);
                     setTargetSectionId(null);
                 }}
-                onAdd={(entityId, type) => {
+                onAdd={(entityId, type, options) => {
                     if (activeDashboardId && targetSectionId) {
                         addWidget(activeDashboardId, targetSectionId, {
                             entityId,
                             type,
+                            options,
                             layout: { x: 0, y: 0, w: 1, h: 1 }
                         });
                     }
